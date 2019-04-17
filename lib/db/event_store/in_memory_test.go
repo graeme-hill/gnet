@@ -3,6 +3,7 @@ package event_store
 import (
 	"testing"
 
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,7 +22,7 @@ func TestInMem(t *testing.T) {
 
 	scanned := []Record{}
 
-	err := store.ScanSince(-1, func(r Record) error {
+	err := store.Scan("build", func(r Record) error {
 		scanned = append(scanned, r)
 		return nil
 	})
@@ -35,4 +36,22 @@ func TestInMem(t *testing.T) {
 	de1, isNewUserEvent := scanned[1].DomainEvent.(NewUserEvent)
 	require.True(t, isNewUserEvent)
 	require.Equal(t, "foobar", de1.name)
+
+	err = store.Scan("build", func(r Record) error {
+		return errors.New("Should never get here")
+	})
+	require.NoError(t, err)
+
+	store.Insert(NewUserEvent{name: "gg"})
+
+	var newScanned Record
+	err = store.Scan("build", func(r Record) error {
+		newScanned = r
+		return nil
+	})
+	require.NoError(t, err)
+
+	de2, isNewUserEvent := newScanned.DomainEvent.(NewUserEvent)
+	require.True(t, isNewUserEvent)
+	require.Equal(t, "gg", de2.name)
 }
