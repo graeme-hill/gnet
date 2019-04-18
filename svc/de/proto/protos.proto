@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+service DomainEvents {
+  rpc InsertDomainEvent(InsertDomainEventRequest) returns InsertDomainEventResponse
+}
+
+message InsertDomainEventRequest {
+  string type = 1;
+  bytes data = 2;
+}
+
+message InsertDomainEventResponse {}
