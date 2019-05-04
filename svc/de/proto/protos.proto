@@ -1,7 +1,8 @@
 syntax = "proto3";
 
 service DomainEvents {
-  rpc InsertDomainEvent(InsertDomainEventRequest) returns InsertDomainEventResponse
+  rpc InsertDomainEvent (InsertDomainEventRequest) returns (InsertDomainEventResponse) {}
+  rpc Scan(stream ScanRequest) returns (stream ScanResponse) {}
 }
 
 message InsertDomainEventRequest {
@@ -10,3 +11,13 @@ message InsertDomainEventRequest {
 }
 
 message InsertDomainEventResponse {}
+
+message ScanRequest {
+  uint32 pointer = 1;
+  uint64 after = 2;
+}
+
+message ScanResponse {
+  uint64 id = 1;
+  bytes data = 2;
+}

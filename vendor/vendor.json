@@ -135,10 +135,10 @@
 			"revisionTime": "2019-04-15T14:32:25Z"
 		},
 		{
-			"checksumSHA1": "wtbE9643pbT5eIe47gZHTkkJ330=",
+			"checksumSHA1": "9iVFsJYKQU71hfj0skKA+E4P4/I=",
 			"path": "google.golang.org/grpc",
-			"revision": "d7af56a5e494ceb44a0749ca576c83cfd3a42bd2",
-			"revisionTime": "2019-04-16T22:54:26Z"
+			"revision": "4b60e3b6a1900853971945c616869c0fc211ac75",
+			"revisionTime": "2019-05-03T17:47:23Z"
 		},
 		{
 			"checksumSHA1": "e96V30YlF8nnJw+2c14d8kUUDaE=",
@@ -327,5 +327,5 @@
 			"revisionTime": "2019-04-16T22:54:26Z"
 		}
 	],
-	"rootPath": "github.com/graemehill.ca/gnet"
+	"rootPath": "github.com/graeme-hill/gnet"
 }
