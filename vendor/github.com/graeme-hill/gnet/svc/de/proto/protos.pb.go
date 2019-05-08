@@ -1,0 +1,1 @@
+../../../../../../../bazel-genfiles/svc/de/proto/darwin_amd64_stripped/protos_go_proto%/github.com/example/project/svc/de/proto/protos.pb.go
