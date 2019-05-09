@@ -1,13 +1,15 @@
-package event_store
+package eventstore
 
 import (
-	"github.com/pkg/errors"
 	"sync"
+
+	"github.com/pkg/errors"
 )
 
-type inMemEventStore struct {
+// InMemEventStore implements EventStore interface and just uses a slice.
+type InMemEventStore struct {
 	records  []Record
-	mutex    sync.Mutex
+	mutex    *sync.Mutex
 	pointers map[string]*pointer
 }
 
@@ -16,7 +18,7 @@ type pointer struct {
 	mutex sync.Mutex
 }
 
-func (e *inMemEventStore) requirePointer(key string) *pointer {
+func (e *InMemEventStore) requirePointer(key string) *pointer {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
 
@@ -29,15 +31,16 @@ func (e *inMemEventStore) requirePointer(key string) *pointer {
 	return p
 }
 
-func (e *inMemEventStore) setPointer(key string, id int) {
+func (e *InMemEventStore) setPointer(key string, id int) {
 	e.pointers[key].id = id
 }
 
-func (e *inMemEventStore) nextID() int {
+func (e *InMemEventStore) nextID() int {
 	return len(e.records)
 }
 
-func (e *inMemEventStore) Insert(de DomainEvent) error {
+// Insert adds a new event to the store.
+func (e *InMemEventStore) Insert(de DomainEvent) error {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
 
@@ -49,7 +52,8 @@ func (e *inMemEventStore) Insert(de DomainEvent) error {
 	return nil
 }
 
-func (e inMemEventStore) Scan(scanKey string, handler ScanHandler) error {
+// Scan iterates through events for the given pointer.
+func (e InMemEventStore) Scan(scanKey string, handler ScanHandler) error {
 	p := e.requirePointer(scanKey)
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
@@ -64,8 +68,10 @@ func (e inMemEventStore) Scan(scanKey string, handler ScanHandler) error {
 	return nil
 }
 
-func NewInMemEventStore() inMemEventStore {
-	return inMemEventStore{
+// NewInMemEventStore creates a totally new in-memory store.
+func NewInMemEventStore() *InMemEventStore {
+	return &InMemEventStore{
 		pointers: map[string]*pointer{},
+		mutex:    &sync.Mutex{},
 	}
 }

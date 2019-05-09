@@ -1,4 +1,4 @@
-package event_store
+package eventstore
 
 type ScanHandler = func(Record) error
 
