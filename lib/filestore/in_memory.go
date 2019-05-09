@@ -32,3 +32,9 @@ func (fs *InMemFileStore) Write(path string, data io.Reader) error {
 	fs.files[path] = fileBytes
 	return nil
 }
+
+func NewInMemFileStore() *InMemFileStore {
+	return &InMemFileStore{
+		files: map[string][]byte{},
+	}
+}

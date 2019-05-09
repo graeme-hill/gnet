@@ -39,6 +39,18 @@
 			"revisionTime": "2019-04-09T05:09:43Z"
 		},
 		{
+			"checksumSHA1": "WgzN84Tx+7en7p/e8gSTupIqygw=",
+			"path": "github.com/gorilla/mux",
+			"revision": "c5c6c98bc25355028a63748a498942a6398ccd22",
+			"revisionTime": "2019-03-16T13:32:43Z"
+		},
+		{
+			"checksumSHA1": "nCKKSpWCnyYggKB3rNIEd3iPsVo=",
+			"path": "github.com/oklog/ulid",
+			"revision": "32a8f2e6e06fbf410ec5a51cbb1c337314d5a3ac",
+			"revisionTime": "2019-05-07T15:17:34Z"
+		},
+		{
 			"checksumSHA1": "I7hloldMJZTqUx6hbVDp5nk9fZQ=",
 			"path": "github.com/pkg/errors",
 			"revision": "27936f6d90f9c8e1145f11ed52ffffbfdb9e0af7",
