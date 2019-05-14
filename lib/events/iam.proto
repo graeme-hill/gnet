@@ -16,5 +16,5 @@ message UserPromote {
 }
 
 message UserDemote {
-  string id = 2;
+  string id = 1;
 }
