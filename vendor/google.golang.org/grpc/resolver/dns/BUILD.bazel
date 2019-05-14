@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["dns_resolver.go"],
-    importmap = "github.com/example/project/vendor/google.golang.org/grpc/resolver/dns",
+    importmap = "github.com/graeme-hill/gnet/vendor/google.golang.org/grpc/resolver/dns",
     importpath = "google.golang.org/grpc/resolver/dns",
     visibility = ["//visibility:public"],
     deps = [

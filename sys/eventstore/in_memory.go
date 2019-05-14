@@ -14,7 +14,7 @@ type InMemEventStore struct {
 }
 
 type pointer struct {
-	id    int
+	id    int64
 	mutex sync.Mutex
 }
 
@@ -31,12 +31,12 @@ func (e *InMemEventStore) requirePointer(key string) *pointer {
 	return p
 }
 
-func (e *InMemEventStore) setPointer(key string, id int) {
+func (e *InMemEventStore) setPointer(key string, id int64) {
 	e.pointers[key].id = id
 }
 
-func (e *InMemEventStore) nextID() int {
-	return len(e.records)
+func (e *InMemEventStore) nextID() int64 {
+	return int64(len(e.records))
 }
 
 // Insert adds a new event to the store.

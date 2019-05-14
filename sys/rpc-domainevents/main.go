@@ -2,18 +2,17 @@ package main
 
 import (
 	"context"
-	"io"
 	"log"
 	"net"
 
-	"github.com/graeme-hill/gnet/lib/eventstore"
-	pb "github.com/graeme-hill/gnet/svc/de/proto"
-	"google.golang.org/grpc"
+	"github.com/graeme-hill/gnet/sys/eventstore"
+	pb "github.com/graeme-hill/gnet/sys/rpc-domainevents/proto"
 	"github.com/pkg/errors"
+	"google.golang.org/grpc"
 )
 
 type server struct {
-	store *eventstore.InMemEventStore
+	store eventstore.EventStore
 }
 
 func (s *server) InsertDomainEvent(ctx context.Context, in *pb.InsertDomainEventRequest) (*pb.InsertDomainEventResponse, error) {
@@ -21,19 +20,20 @@ func (s *server) InsertDomainEvent(ctx context.Context, in *pb.InsertDomainEvent
 }
 
 func (s *server) Scan(stream pb.DomainEvents_ScanServer) error {
-	req, err := stream.Recv()
+	_, err := stream.Recv()
 	if err != nil {
 		return errors.Wrap(err, "Failed to receive initial message from client")
 	}
 
 	s.store.Scan("TODO", func(rec eventstore.Record) error {
 		err = stream.Send(&pb.ScanResponse{
-			Id: rec.Id,
+			Id:   rec.ID,
 			Data: rec.DomainEvent.Data,
 		})
 		if err != nil {
 			return errors.Wrap(err, "Failed to send domain event to client")
 		}
+		return nil
 	})
 
 	return nil
@@ -47,7 +47,7 @@ func main() {
 
 	s := grpc.NewServer()
 	pb.RegisterDomainEventsServer(s, &server{
-		store: eventstore.NewInMemEventStore(),
+		store: eventstore.NewEventStoreConn(),
 	})
 
 	if err := s.Serve(listen); err != nil {

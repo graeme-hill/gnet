@@ -1,21 +1,21 @@
-package main
+package scan
 
 import (
 	"context"
 	"time"
 
-	pb "github.com/graeme-hill/gnet/lib/scan/proto"
+	pb "github.com/graeme-hill/gnet/sys/scan/proto"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )
 
 type DomainEvent struct {
-	ID   string
+	ID   int64
 	Data []byte
 }
 
 type ScanClient struct {
-	client *pb.DomainEventsClient
+	client pb.DomainEventsClient
 }
 
 func NewScanClient(addr string) (ScanClient, error) {
@@ -29,7 +29,7 @@ func NewScanClient(addr string) (ScanClient, error) {
 
 type ScanHandler func(de DomainEvent) error
 
-func (sc *ScanClient) Scan(pointer uint32, after uint64, handler ScanHandler) error {
+func (sc *ScanClient) Scan(pointer uint32, after int64, handler ScanHandler) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 

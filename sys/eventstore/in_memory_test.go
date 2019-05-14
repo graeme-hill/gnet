@@ -17,8 +17,10 @@ func (e NewUserEvent) Type() string {
 
 func TestInMem(t *testing.T) {
 	store := NewInMemEventStore()
-	store.Insert(NewUserEvent{name: "graeme"})
-	store.Insert(NewUserEvent{name: "foobar"})
+	graeme := []byte{1}
+	foobar := []byte{2}
+	store.Insert(DomainEvent{Type: "new_user", Data: graeme})
+	store.Insert(DomainEvent{Type: "new_user", Data: foobar})
 
 	scanned := []Record{}
 
@@ -29,20 +31,19 @@ func TestInMem(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Len(t, scanned, 2)
-	de0, isNewUserEvent := scanned[0].DomainEvent.(NewUserEvent)
-	require.True(t, isNewUserEvent)
-	require.Equal(t, "graeme", de0.name)
+	de0 := scanned[0].DomainEvent
+	require.Equal(t, graeme, de0.Data)
 
-	de1, isNewUserEvent := scanned[1].DomainEvent.(NewUserEvent)
-	require.True(t, isNewUserEvent)
-	require.Equal(t, "foobar", de1.name)
+	de1 := scanned[1].DomainEvent
+	require.Equal(t, foobar, de1.Data)
 
 	err = store.Scan("build", func(r Record) error {
 		return errors.New("Should never get here")
 	})
 	require.NoError(t, err)
 
-	store.Insert(NewUserEvent{name: "gg"})
+	gg := []byte{3}
+	store.Insert(DomainEvent{Type: "new_user", Data: gg})
 
 	var newScanned Record
 	err = store.Scan("build", func(r Record) error {
@@ -51,7 +52,6 @@ func TestInMem(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	de2, isNewUserEvent := newScanned.DomainEvent.(NewUserEvent)
-	require.True(t, isNewUserEvent)
-	require.Equal(t, "gg", de2.name)
+	de2 := newScanned.DomainEvent
+	require.Equal(t, gg, de2.Data)
 }

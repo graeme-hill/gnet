@@ -12,7 +12,7 @@ go_library(
         "forward_assertions.go",
         "http_assertions.go",
     ],
-    importmap = "github.com/example/project/vendor/github.com/stretchr/testify/assert",
+    importmap = "github.com/graeme-hill/gnet/vendor/github.com/stretchr/testify/assert",
     importpath = "github.com/stretchr/testify/assert",
     visibility = ["//visibility:public"],
     deps = [

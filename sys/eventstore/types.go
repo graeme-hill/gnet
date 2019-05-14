@@ -7,15 +7,16 @@ type EventStore interface {
 	Scan(pointer string, handler ScanHandler) error
 }
 
-type DomainEvent interface {
-	Type() string
+type DomainEvent struct {
+	Type string
+	Data []byte
 }
 
 type Record struct {
-	ID          int
+	ID          int64
 	DomainEvent DomainEvent
 }
 
 type Pointer struct {
-	ID int
+	ID int64
 }

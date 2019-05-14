@@ -3,10 +3,11 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = [
+        "factory.go",
         "in_memory.go",
         "types.go",
     ],
-    importpath = "github.com/example/project/lib/event_store",
+    importpath = "github.com/graeme-hill/gnet/sys/eventstore",
     visibility = ["//visibility:public"],
     deps = ["//vendor/github.com/pkg/errors:go_default_library"],
 )

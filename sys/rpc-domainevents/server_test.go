@@ -7,7 +7,9 @@ import (
 	"testing"
 	"time"
 
-	pb "github.com/graeme-hill/gnet/svc/de/proto"
+	"github.com/graeme-hill/gnet/sys/eventstore"
+
+	pb "github.com/graeme-hill/gnet/sys/rpc-domainevents/proto"
 	"google.golang.org/grpc"
 )
 
@@ -18,20 +20,22 @@ func runServer(t *testing.T) {
 	}
 
 	s := grpc.NewServer()
-	pb.RegisterDomainEventsServer(s, &server{})
+	pb.RegisterDomainEventsServer(s, &server{
+		store: eventstore.NewEventStoreConn(),
+	})
 
 	if err := s.Serve(listen); err != nil {
 		t.Fatalf("failed to server: %v", err)
 	}
 }
 
-func TestServer2(t *testing.T) {
-	go runServer(t)
-	time.Sleep(100, * time.Millisecond)
+// func TestServer2(t *testing.T) {
+// 	go runServer(t)
+// 	time.Sleep(100, * time.Millisecond)
 
-	client := eventstore.ScanClient("localhost:50505")
-	client.Scan(1, 0, func
-}
+// 	client := eventstore.ScanClient("localhost:50505")
+// 	client.Scan(1, 0, func
+// }
 
 func TestServer(t *testing.T) {
 	go runServer(t)

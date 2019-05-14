@@ -1,30 +1,29 @@
 package main
 
 import (
+	"math/rand"
 	"net/http"
-	"github.com/graeme-hill/gnet/lib/filestore"
-	"github.com/graeme-hill/gnet/lib/eventstore"
+	"time"
+
 	"github.com/gorilla/mux"
+	"github.com/graeme-hill/gnet/sys/eventstore"
+	"github.com/graeme-hill/gnet/sys/filestore"
 	"github.com/oklog/ulid"
 )
 
-var store = filestore.NewInMemFileStore()
-var events = eventstore.NewInMemFileStore()
+var files = filestore.NewFileStoreConn("")
+var events = eventstore.NewEventStoreConn()
 
-const MAX_FILE_NAME_LENGTH = 100
-
-func makeFileName(original string) string {
+func makeFileName(hash string) string {
 	t := time.Unix(1000000, 0)
 	entropy := ulid.Monotonic(rand.New(rand.NewSource(t.UnixNano())), 0)
 	id := ulid.MustNew(ulid.Timestamp(t), entropy)
-
-	remaining_chars = MAX_FILE_NAME_LENGTH - len(id) - 1
-	return id + "_" + original[:remaining_chars]
+	return "ph_" + id.String() + "_" + hash
 }
 
 func main() {
-	mux := mux.NewRouter()
-	mux.HandleFunc("/upload/{name}", func(w http.ResponseWriter, r *http.Request) {
+	router := mux.NewRouter()
+	router.HandleFunc("/upload/{hash}", func(w http.ResponseWriter, r *http.Request) {
 		// Validate
 		if r.Method != http.MethodPost {
 			http.Error(w, "only POST is allowed", http.StatusMethodNotAllowed)
@@ -32,15 +31,15 @@ func main() {
 		}
 
 		vars := mux.Vars(r)
-		name, hasName := vars["name"]
-		if !hasName {
-			http.Error(w, "missing file name", http.StatusBadRequest)
+		hash, hasHash := vars["name"]
+		if !hasHash {
+			http.Error(w, "missing file hash", http.StatusBadRequest)
 			return
 		}
 
 		// Write the file somewhere first
-		fileName := makeFileName(name)
-		err := store.Write(name, r.Body)
+		fileName := makeFileName(hash)
+		err := files.Write(fileName, r.Body)
 
 		if err != nil {
 			http.Error(w, "failed to upload file", http.StatusInternalServerError)
@@ -48,10 +47,7 @@ func main() {
 		}
 
 		// Record domain event
-		events.Insert(DomainEvent{
-			Type: "upload_photo",
-			Data: 
-		})
+		//events.Insert(...)
 
 		w.WriteHeader(http.StatusOK)
 	})
