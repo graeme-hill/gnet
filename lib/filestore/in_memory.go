@@ -33,7 +33,7 @@ func (fs *InMemFileStore) Write(path string, data io.Reader) error {
 	return nil
 }
 
-func NewInMemFileStore() *InMemFileStore {
+func NewInMemFileStore() FileStore {
 	return &InMemFileStore{
 		files: map[string][]byte{},
 	}
