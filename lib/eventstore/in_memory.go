@@ -69,7 +69,7 @@ func (e InMemEventStore) Scan(scanKey string, handler ScanHandler) error {
 }
 
 // NewInMemEventStore creates a totally new in-memory store.
-func NewInMemEventStore() *InMemEventStore {
+func NewInMemEventStore() EventStore {
 	return &InMemEventStore{
 		pointers: map[string]*pointer{},
 		mutex:    &sync.Mutex{},
