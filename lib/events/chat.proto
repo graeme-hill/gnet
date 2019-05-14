@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+message CommentCreate {
+  string id = 1;
+  string subject = 2;
+  string userId = 3;
+  string message = 4;
+}
+
+message CommentUpdate {
+  string id = 1;
+  string newMessage = 2;
+}
+
+message CommentDelete {
+  string id = 1;
+}

@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+message UserCreate {
+  string email = 1;
+  string id = 2;
+  bool admin = 3;
+}
+
+message UserSetName {
+  string id = 1;
+  string name = 2;
+}
+
+message UserPromote {
+  string id = 1;
+}
+
+message UserDemote {
+  string id = 2;
+}
