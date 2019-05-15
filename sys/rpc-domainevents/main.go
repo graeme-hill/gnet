@@ -6,7 +6,7 @@ import (
 	"net"
 
 	"github.com/graeme-hill/gnet/sys/eventstore"
-	pb "github.com/graeme-hill/gnet/sys/rpc-domainevents/proto"
+	"github.com/graeme-hill/gnet/sys/rpc-domainevents/pb"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )

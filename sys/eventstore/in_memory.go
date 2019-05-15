@@ -6,7 +6,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// InMemEventStore implements EventStore interface and just uses a slice.
+var stores = map[string]*InMemEventStore{}
+
 type InMemEventStore struct {
 	records  []Record
 	mutex    *sync.Mutex
@@ -39,7 +40,6 @@ func (e *InMemEventStore) nextID() int64 {
 	return int64(len(e.records))
 }
 
-// Insert adds a new event to the store.
 func (e *InMemEventStore) Insert(de DomainEvent) error {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
@@ -52,7 +52,6 @@ func (e *InMemEventStore) Insert(de DomainEvent) error {
 	return nil
 }
 
-// Scan iterates through events for the given pointer.
 func (e InMemEventStore) Scan(scanKey string, handler ScanHandler) error {
 	p := e.requirePointer(scanKey)
 	p.mutex.Lock()
@@ -68,10 +67,14 @@ func (e InMemEventStore) Scan(scanKey string, handler ScanHandler) error {
 	return nil
 }
 
-// NewInMemEventStore creates a totally new in-memory store.
-func NewInMemEventStore() EventStore {
-	return &InMemEventStore{
-		pointers: map[string]*pointer{},
-		mutex:    &sync.Mutex{},
+func NewInMemEventStore(connStr string) EventStore {
+	store, ok := stores[connStr]
+	if !ok {
+		store = &InMemEventStore{
+			pointers: map[string]*pointer{},
+			mutex:    &sync.Mutex{},
+		}
+		stores[connStr] = store
 	}
+	return store
 }

@@ -6,13 +6,14 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/graeme-hill/gnet/photos/events"
 	"github.com/graeme-hill/gnet/sys/eventstore"
 	"github.com/graeme-hill/gnet/sys/filestore"
 	"github.com/oklog/ulid"
 )
 
-var files = filestore.NewFileStoreConn("")
-var events = eventstore.NewEventStoreConn()
+var filesDB = filestore.NewFileStoreConn(":memory:")
+var eventsDB = eventstore.NewEventStoreConn(":memory:")
 
 func makeFileName(hash string) string {
 	t := time.Unix(1000000, 0)
@@ -39,7 +40,7 @@ func main() {
 
 		// Write the file somewhere first
 		fileName := makeFileName(hash)
-		err := files.Write(fileName, r.Body)
+		err := filesDB.Write(fileName, r.Body)
 
 		if err != nil {
 			http.Error(w, "failed to upload file", http.StatusInternalServerError)
@@ -47,7 +48,16 @@ func main() {
 		}
 
 		// Record domain event
-		//events.Insert(...)
+		de, err := events.NewPhotoUploadedEvent(hash)
+		if err != nil {
+			http.Error(w, "server error", http.StatusInternalServerError)
+			return
+		}
+		err = eventsDB.Insert(de)
+		if err != nil {
+			http.Error(w, "server error", http.StatusInternalServerError)
+			return
+		}
 
 		w.WriteHeader(http.StatusOK)
 	})

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	pb "github.com/graeme-hill/gnet/sys/scan/proto"
+	"github.com/graeme-hill/gnet/sys/scan/pb"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )
@@ -12,19 +12,20 @@ import (
 type DomainEvent struct {
 	ID   int64
 	Data []byte
+	Date time.Time
 }
 
 type ScanClient struct {
 	client pb.DomainEventsClient
 }
 
-func NewScanClient(addr string) (ScanClient, error) {
+func NewScanClient(addr string) (*ScanClient, error) {
 	conn, err := grpc.Dial(addr, grpc.WithInsecure())
 	if err != nil {
-		return ScanClient{}, errors.Wrapf(err, "Cannot connect grpc client using addr '%s'", addr)
+		return &ScanClient{}, errors.Wrapf(err, "Cannot connect grpc client using addr '%s'", addr)
 	}
 
-	return ScanClient{client: pb.NewDomainEventsClient(conn)}, nil
+	return &ScanClient{client: pb.NewDomainEventsClient(conn)}, nil
 }
 
 type ScanHandler func(de DomainEvent) error
@@ -59,6 +60,7 @@ func (sc *ScanClient) Scan(pointer uint32, after int64, handler ScanHandler) err
 		err = handler(DomainEvent{
 			ID:   sr.Id,
 			Data: sr.Data,
+			Date: time.Unix(sr.Date, 0),
 		})
 		if err != nil {
 			return errors.Wrap(err, "Abandoning scan because a handler failed")

@@ -1,5 +1,7 @@
 package eventstore
 
+import "time"
+
 type ScanHandler = func(Record) error
 
 type EventStore interface {
@@ -9,6 +11,7 @@ type EventStore interface {
 
 type DomainEvent struct {
 	Type string
+	Date time.Time
 	Data []byte
 }
 

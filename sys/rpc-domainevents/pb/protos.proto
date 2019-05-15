@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package = "pb";
+
 service DomainEvents {
   rpc InsertDomainEvent (InsertDomainEventRequest) returns (InsertDomainEventResponse) {}
   rpc Scan(stream ScanRequest) returns (stream ScanResponse) {}
@@ -20,4 +22,5 @@ message ScanRequest {
 message ScanResponse {
   int64 id = 1;
   bytes data = 2;
+  int64 date = 3;
 }

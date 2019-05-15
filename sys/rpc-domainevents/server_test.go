@@ -9,7 +9,7 @@ import (
 
 	"github.com/graeme-hill/gnet/sys/eventstore"
 
-	pb "github.com/graeme-hill/gnet/sys/rpc-domainevents/proto"
+	"github.com/graeme-hill/gnet/sys/rpc-domainevents/pb"
 	"google.golang.org/grpc"
 )
 
