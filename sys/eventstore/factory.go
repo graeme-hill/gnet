@@ -17,5 +17,6 @@ func NewDomainEvent(eventType string, msg proto.Message) (DomainEvent, error) {
 	return DomainEvent{
 		Type: eventType,
 		Data: payload,
+		Date: time.Now(),
 	}, nil
 }
