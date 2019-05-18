@@ -6,7 +6,7 @@ type ScanHandler = func(Record) error
 
 type EventStore interface {
 	Insert(DomainEvent) error
-	Scan(pointer string, handler ScanHandler) error
+	Scan(pointer uint32, handler ScanHandler) error
 }
 
 type DomainEvent struct {

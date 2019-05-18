@@ -11,7 +11,7 @@ var stores = map[string]*InMemEventStore{}
 type InMemEventStore struct {
 	records  []Record
 	mutex    *sync.Mutex
-	pointers map[string]*pointer
+	pointers map[uint32]*pointer
 }
 
 type pointer struct {
@@ -19,21 +19,21 @@ type pointer struct {
 	mutex sync.Mutex
 }
 
-func (e *InMemEventStore) requirePointer(key string) *pointer {
+func (e *InMemEventStore) requirePointer(pointerID uint32) *pointer {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
 
-	p, found := e.pointers[key]
+	p, found := e.pointers[pointerID]
 	if !found {
 		p = &pointer{id: -1}
-		e.pointers[key] = p
+		e.pointers[pointerID] = p
 	}
 
 	return p
 }
 
-func (e *InMemEventStore) setPointer(key string, id int64) {
-	e.pointers[key].id = id
+func (e *InMemEventStore) setPointer(pointerID uint32, id int64) {
+	e.pointers[pointerID].id = id
 }
 
 func (e *InMemEventStore) nextID() int64 {
@@ -52,8 +52,8 @@ func (e *InMemEventStore) Insert(de DomainEvent) error {
 	return nil
 }
 
-func (e InMemEventStore) Scan(scanKey string, handler ScanHandler) error {
-	p := e.requirePointer(scanKey)
+func (e InMemEventStore) Scan(pointer uint32, handler ScanHandler) error {
+	p := e.requirePointer(pointer)
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 
@@ -62,7 +62,7 @@ func (e InMemEventStore) Scan(scanKey string, handler ScanHandler) error {
 		if err != nil {
 			return errors.Wrap(err, "scan handler returned an error")
 		}
-		e.setPointer(scanKey, record.ID)
+		e.setPointer(pointer, record.ID)
 	}
 	return nil
 }
@@ -71,7 +71,7 @@ func NewInMemEventStore(connStr string) EventStore {
 	store, ok := stores[connStr]
 	if !ok {
 		store = &InMemEventStore{
-			pointers: map[string]*pointer{},
+			pointers: map[uint32]*pointer{},
 			mutex:    &sync.Mutex{},
 		}
 		stores[connStr] = store

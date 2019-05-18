@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
-	"log"
 	"net"
 	"testing"
 	"time"
 
 	"github.com/graeme-hill/gnet/sys/eventstore"
+	"github.com/stretchr/testify/require"
 
 	"github.com/graeme-hill/gnet/sys/rpc-domainevents/pb"
 	"google.golang.org/grpc"
@@ -16,32 +16,34 @@ import (
 func runServer(t *testing.T) {
 	listen, err := net.Listen("tcp", ":50505")
 	if err != nil {
-		t.Fatalf("failed to listen: %v", err)
+		t.Errorf("failed to listen: %v", err)
 	}
 
 	s := grpc.NewServer()
 	pb.RegisterDomainEventsServer(s, &server{
-		store: eventstore.NewEventStoreConn(),
+		store: eventstore.NewEventStoreConn("mem"),
 	})
 
 	if err := s.Serve(listen); err != nil {
-		t.Fatalf("failed to server: %v", err)
+		t.Errorf("failed to server: %v", err)
 	}
 }
 
-// func TestServer2(t *testing.T) {
-// 	go runServer(t)
-// 	time.Sleep(100, * time.Millisecond)
-
-// 	client := eventstore.ScanClient("localhost:50505")
-// 	client.Scan(1, 0, func
-// }
+func waitForServer(addr string, delay time.Duration, attempts int) (*grpc.ClientConn, error) {
+	var err error = nil
+	for i := 0; i < attempts; i++ {
+		time.Sleep(delay)
+		conn, err := grpc.Dial("localhost:50505", grpc.WithInsecure())
+		if err == nil {
+			return conn, nil
+		}
+	}
+	return nil, err
+}
 
 func TestServer(t *testing.T) {
 	go runServer(t)
-	time.Sleep(100 * time.Millisecond)
-
-	conn, err := grpc.Dial("localhost:50505", grpc.WithInsecure())
+	conn, err := waitForServer("localhost:50505", 100*time.Millisecond, 10)
 	if err != nil {
 		t.Fatalf("cannot connect: %v", err)
 	}
@@ -51,34 +53,37 @@ func TestServer(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
+	data0 := []byte{1, 2}
+	data1 := []byte{3, 4}
+
 	_, err = c.InsertDomainEvent(ctx, &pb.InsertDomainEventRequest{
 		Type: "foo",
-		Data: []byte{},
+		Data: data0,
 	})
+	require.NoError(t, err)
 
-	if err != nil {
-		t.Fatalf("error inserting domain event: %v", err)
-	}
+	_, err = c.InsertDomainEvent(ctx, &pb.InsertDomainEventRequest{
+		Type: "foo",
+		Data: data1,
+	})
+	require.NoError(t, err)
 
 	stream, err := c.Scan(ctx)
-	if err != nil {
-		t.Fatalf("failed to open scan stream: %v", err)
-	}
+	require.NoError(t, err)
 
 	err = stream.Send(&pb.ScanRequest{
 		Pointer: 6,
-		After:   77,
+		After:   -1,
 	})
-	if err != nil {
-		t.Fatalf("failed to send scan req: %v", err)
-	}
+	require.NoError(t, err)
 
 	sr, err := stream.Recv()
-	if err != nil {
-		t.Fatalf("failed to recv: %v", err)
-	}
+	require.NoError(t, err)
+	require.Equal(t, int64(0), sr.Id)
+	require.Equal(t, data0, sr.Data)
 
-	if sr.Id != 77 {
-		log.Fatalf("bad sr: %v", sr)
-	}
+	sr, err = stream.Recv()
+	require.NoError(t, err)
+	require.Equal(t, int64(1), sr.Id)
+	require.Equal(t, data1, sr.Data)
 }

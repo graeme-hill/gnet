@@ -21,12 +21,14 @@ func TestInMem(t *testing.T) {
 	graeme := []byte{1}
 	foobar := []byte{2}
 	now := time.Now()
-	store.Insert(DomainEvent{Type: "new_user", Data: graeme, Date: now})
-	store.Insert(DomainEvent{Type: "new_user", Data: foobar, Date: now})
+	err := store.Insert(DomainEvent{Type: "new_user", Data: graeme, Date: now})
+	require.NoError(t, err)
+	err = store.Insert(DomainEvent{Type: "new_user", Data: foobar, Date: now})
+	require.NoError(t, err)
 
 	scanned := []Record{}
 
-	err := store.Scan("build", func(r Record) error {
+	err = store.Scan(1, func(r Record) error {
 		scanned = append(scanned, r)
 		return nil
 	})
@@ -41,16 +43,17 @@ func TestInMem(t *testing.T) {
 	require.Equal(t, foobar, de1.Data)
 	require.Equal(t, now, de1.Date)
 
-	err = store.Scan("build", func(r Record) error {
+	err = store.Scan(1, func(r Record) error {
 		return errors.New("Should never get here")
 	})
 	require.NoError(t, err)
 
 	gg := []byte{3}
-	store.Insert(DomainEvent{Type: "new_user", Data: gg, Date: now})
+	err = store.Insert(DomainEvent{Type: "new_user", Data: gg, Date: now})
+	require.NoError(t, err)
 
 	var newScanned Record
-	err = store.Scan("build", func(r Record) error {
+	err = store.Scan(1, func(r Record) error {
 		newScanned = r
 		return nil
 	})

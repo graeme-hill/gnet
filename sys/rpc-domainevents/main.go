@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net"
+	"time"
 
 	"github.com/graeme-hill/gnet/sys/eventstore"
 	"github.com/graeme-hill/gnet/sys/rpc-domainevents/pb"
@@ -16,16 +17,24 @@ type server struct {
 }
 
 func (s *server) InsertDomainEvent(ctx context.Context, in *pb.InsertDomainEventRequest) (*pb.InsertDomainEventResponse, error) {
+	err := s.store.Insert(eventstore.DomainEvent{
+		Type: in.Type,
+		Date: time.Now(),
+		Data: in.Data,
+	})
+	if err != nil {
+		return nil, err
+	}
 	return &pb.InsertDomainEventResponse{}, nil
 }
 
 func (s *server) Scan(stream pb.DomainEvents_ScanServer) error {
-	_, err := stream.Recv()
+	req, err := stream.Recv()
 	if err != nil {
 		return errors.Wrap(err, "Failed to receive initial message from client")
 	}
 
-	s.store.Scan("TODO", func(rec eventstore.Record) error {
+	err = s.store.Scan(req.Pointer, func(rec eventstore.Record) error {
 		err = stream.Send(&pb.ScanResponse{
 			Id:   rec.ID,
 			Data: rec.DomainEvent.Data,
@@ -36,7 +45,7 @@ func (s *server) Scan(stream pb.DomainEvents_ScanServer) error {
 		return nil
 	})
 
-	return nil
+	return err
 }
 
 func main() {
@@ -47,7 +56,7 @@ func main() {
 
 	s := grpc.NewServer()
 	pb.RegisterDomainEventsServer(s, &server{
-		store: eventstore.NewEventStoreConn(),
+		store: eventstore.NewEventStoreConn("mem"),
 	})
 
 	if err := s.Serve(listen); err != nil {
