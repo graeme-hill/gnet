@@ -16,13 +16,13 @@ type inMemFileStore struct {
 }
 
 // Read opens a reader on the file if it exists.
-func (fs *inMemFileStore) Read(path string) (io.Reader, error) {
+func (fs *inMemFileStore) Read(path string) (io.Reader, bool, error) {
 	fileBytes, ok := fs.files[path]
 	if !ok {
-		return nil, errors.New("file not found")
+		return nil, false, nil
 	}
 
-	return bytes.NewReader(fileBytes), nil
+	return bytes.NewReader(fileBytes), true, nil
 }
 
 // Write adds file to map.
@@ -33,6 +33,15 @@ func (fs *inMemFileStore) Write(path string, data io.Reader) error {
 	}
 	fs.files[path] = fileBytes
 	return nil
+}
+
+func (fs *inMemFileStore) Delete(path string) (bool, error) {
+	_, exists := fs.files[path]
+	if !exists {
+		return false, nil
+	}
+	delete(fs.files, path)
+	return true, nil
 }
 
 // NewInMemFileStore uses a map to store bytes. All data is erased when process

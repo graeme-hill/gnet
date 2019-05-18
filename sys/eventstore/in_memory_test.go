@@ -2,6 +2,7 @@ package eventstore
 
 import (
 	"testing"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
@@ -16,11 +17,12 @@ func (e NewUserEvent) Type() string {
 }
 
 func TestInMem(t *testing.T) {
-	store := NewInMemEventStore()
+	store := NewInMemEventStore("mem")
 	graeme := []byte{1}
 	foobar := []byte{2}
-	store.Insert(DomainEvent{Type: "new_user", Data: graeme})
-	store.Insert(DomainEvent{Type: "new_user", Data: foobar})
+	now := time.Now()
+	store.Insert(DomainEvent{Type: "new_user", Data: graeme, Date: now})
+	store.Insert(DomainEvent{Type: "new_user", Data: foobar, Date: now})
 
 	scanned := []Record{}
 
@@ -33,9 +35,11 @@ func TestInMem(t *testing.T) {
 	require.Len(t, scanned, 2)
 	de0 := scanned[0].DomainEvent
 	require.Equal(t, graeme, de0.Data)
+	require.Equal(t, now, de0.Date)
 
 	de1 := scanned[1].DomainEvent
 	require.Equal(t, foobar, de1.Data)
+	require.Equal(t, now, de1.Date)
 
 	err = store.Scan("build", func(r Record) error {
 		return errors.New("Should never get here")
@@ -43,7 +47,7 @@ func TestInMem(t *testing.T) {
 	require.NoError(t, err)
 
 	gg := []byte{3}
-	store.Insert(DomainEvent{Type: "new_user", Data: gg})
+	store.Insert(DomainEvent{Type: "new_user", Data: gg, Date: now})
 
 	var newScanned Record
 	err = store.Scan("build", func(r Record) error {
@@ -54,4 +58,5 @@ func TestInMem(t *testing.T) {
 
 	de2 := newScanned.DomainEvent
 	require.Equal(t, gg, de2.Data)
+	require.Equal(t, now, de2.Date)
 }

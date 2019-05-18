@@ -1,6 +1,8 @@
 package eventstore
 
 import (
+	"time"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 )
