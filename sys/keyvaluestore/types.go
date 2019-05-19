@@ -7,15 +7,12 @@ type KeyValueStore interface {
 	Set(string, []byte) error
 	Delete(string) error
 	DeleteMany(string) error
-	ReadMany(min string, max string, limit int) (Cursor, error)
+	ReadRange(min, max string, limit int) (Cursor, error)
+	ReadFrom(start string, limit int) (Cursor, error)
 }
 
 type Cursor interface {
-	Next() (ReadResult, error)
-}
-
-type ReadResult struct {
-	Key   string
-	Value []byte
-	More  bool
+	Next() bool
+	Key() (string, error)
+	Value() ([]byte, error)
 }
