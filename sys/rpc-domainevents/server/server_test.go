@@ -1,8 +1,7 @@
-package main
+package server
 
 import (
 	"context"
-	"net"
 	"testing"
 	"time"
 
@@ -10,43 +9,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/graeme-hill/gnet/sys/rpc-domainevents/pb"
-	"google.golang.org/grpc"
 )
 
-func runServer(t *testing.T) {
-	listen, err := net.Listen("tcp", ":50505")
-	if err != nil {
-		t.Errorf("failed to listen: %v", err)
-	}
-
-	s := grpc.NewServer()
-	pb.RegisterDomainEventsServer(s, &server{
-		store: eventstore.NewEventStoreConn("mem"),
-	})
-
-	if err := s.Serve(listen); err != nil {
-		t.Errorf("failed to server: %v", err)
-	}
-}
-
-func waitForServer(addr string, delay time.Duration, attempts int) (*grpc.ClientConn, error) {
-	var err error = nil
-	for i := 0; i < attempts; i++ {
-		time.Sleep(delay)
-		conn, err := grpc.Dial("localhost:50505", grpc.WithInsecure())
-		if err == nil {
-			return conn, nil
-		}
-	}
-	return nil, err
-}
-
 func TestServer(t *testing.T) {
-	go runServer(t)
-	conn, err := waitForServer("localhost:50505", 100*time.Millisecond, 10)
-	if err != nil {
-		t.Fatalf("cannot connect: %v", err)
-	}
+	go func() {
+		_ = RunServer(":50505", eventstore.NewEventStoreConn("mem"))
+	}()
+	conn, err := WaitForServer("localhost:50505", 100*time.Millisecond, 10)
+	require.NoError(t, err)
 	defer conn.Close()
 
 	c := pb.NewDomainEventsClient(conn)
