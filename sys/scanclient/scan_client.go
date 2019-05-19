@@ -1,10 +1,10 @@
-package scan
+package scanclient
 
 import (
 	"context"
 	"time"
 
-	"github.com/graeme-hill/gnet/sys/scan/pb"
+	pb "github.com/graeme-hill/gnet/sys/scanclient/pbscanclient"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )
@@ -17,6 +17,7 @@ type DomainEvent struct {
 
 type ScanClient struct {
 	client pb.DomainEventsClient
+	conn   *grpc.ClientConn
 }
 
 func NewScanClient(addr string) (*ScanClient, error) {
@@ -25,7 +26,7 @@ func NewScanClient(addr string) (*ScanClient, error) {
 		return &ScanClient{}, errors.Wrapf(err, "Cannot connect grpc client using addr '%s'", addr)
 	}
 
-	return &ScanClient{client: pb.NewDomainEventsClient(conn)}, nil
+	return &ScanClient{client: pb.NewDomainEventsClient(conn), conn: conn}, nil
 }
 
 type ScanHandler func(de DomainEvent) error
@@ -67,9 +68,16 @@ func (sc *ScanClient) Scan(pointer uint32, after int64, handler ScanHandler) err
 		}
 
 		// Tell the server we good for this event.
-		stream.Send(&pb.ScanRequest{
+		err = stream.Send(&pb.ScanRequest{
 			Pointer: pointer,
 			After:   sr.Id,
 		})
+		if err != nil {
+			return errors.Wrap(err, "Abandoning scan because send failed")
+		}
 	}
+}
+
+func (sc *ScanClient) Close() {
+	sc.conn.Close()
 }
