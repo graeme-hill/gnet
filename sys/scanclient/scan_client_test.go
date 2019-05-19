@@ -58,8 +58,7 @@ func TestScanClient(t *testing.T) {
 		events = append(events, de)
 		return nil
 	})
-	require.NoError(t, err)
+	require.Error(t, err)
 
 	require.Len(t, events, 2)
-
 }
