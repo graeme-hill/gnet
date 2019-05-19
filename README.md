@@ -1,12 +1,26 @@
-To build everything:
+To run things:
 
 ```
-bazel build //...
+go run whatever
 ```
 
-To add a new go dependency:
+To test things:
 
 ```
-govendor fetch URL
-bazel run //:gazelle
+go test whatever
 ```
+
+To rebuild generated code
+
+```
+./codegen.sh
+```
+
+or
+
+```
+./codegen.bat
+```
+
+Generated code is committed to the repo so you only need to regenerate when a
+proto file changes.
