@@ -8,7 +8,7 @@ import (
 	"github.com/graeme-hill/gnet/sys/eventstore"
 	"github.com/stretchr/testify/require"
 
-	"github.com/graeme-hill/gnet/sys/rpc-domainevents/pb"
+	"github.com/graeme-hill/gnet/sys/pb"
 )
 
 func TestServer(t *testing.T) {

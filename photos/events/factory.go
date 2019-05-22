@@ -1,7 +1,7 @@
 package events
 
 import (
-	"github.com/graeme-hill/gnet/photos/events/pb"
+	"github.com/graeme-hill/gnet/photos/pb"
 	"github.com/graeme-hill/gnet/sys/eventstore"
 )
 

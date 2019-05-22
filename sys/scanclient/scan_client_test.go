@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/graeme-hill/gnet/sys/eventstore"
+	"github.com/graeme-hill/gnet/sys/pb"
 	"github.com/graeme-hill/gnet/sys/rpc-domainevents/server"
-	pb "github.com/graeme-hill/gnet/sys/scanclient/pbscanclient"
 )
 
 func waitForScanClient(addr string, delay time.Duration, attempts int) (*ScanClient, error) {

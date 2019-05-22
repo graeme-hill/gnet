@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/graeme-hill/gnet/sys/eventstore"
-	"github.com/graeme-hill/gnet/sys/rpc-domainevents/pb"
+	"github.com/graeme-hill/gnet/sys/pb"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )

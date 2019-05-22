@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	pb "github.com/graeme-hill/gnet/sys/scanclient/pbscanclient"
+	"github.com/graeme-hill/gnet/sys/pb"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )
@@ -28,13 +28,13 @@ func NewScanClient(addr string) (*ScanClient, error) {
 
 	return &ScanClient{client: pb.NewDomainEventsClient(conn), conn: conn}, nil
 }
- 
+
 type ScanHandler func(de DomainEvent) error
 
 func (sc *ScanClient) Scan(pointer uint32, after int64, handler ScanHandler) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
- 
+
 	// Open two-way stream.
 	stream, err := sc.client.Scan(ctx)
 	if err != nil {

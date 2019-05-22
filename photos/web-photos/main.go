@@ -10,6 +10,8 @@ import (
 	"github.com/graeme-hill/gnet/sys/eventstore"
 	"github.com/graeme-hill/gnet/sys/filestore"
 	"github.com/oklog/ulid"
+
+	depb "github.com/graeme-hill/sys/rpc-domainevents/pb"
 )
 
 var filesDB = filestore.NewFileStoreConn(":memory:")
@@ -53,7 +55,14 @@ func main() {
 			http.Error(w, "server error", http.StatusInternalServerError)
 			return
 		}
-		err = eventsDB.Insert(de)
+		c := depb.NewDomainEventsClient(scanClient.conn)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		_, err = c.InsertDomainEvent(ctx, &depb.InsertDomainEventRequest{
+			Type: de.Type,
+			Data: []byte{1,2},
+		})
+
 		if err != nil {
 			http.Error(w, "server error", http.StatusInternalServerError)
 			return
