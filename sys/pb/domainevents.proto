@@ -42,4 +42,5 @@ message ScanResponseDomainEvent {
   int64 id = 1;
   bytes data = 2;
   int64 date = 3;
+  string type = 4;
 }

@@ -72,12 +72,20 @@ func (w *Worker) doWork() {
 	}
 
 	err := client.Scan(w.builder.Key(), func(de DomainEvent) (bool, error) {
-		deErr := w.builder.OnDomainEvent(DomainEvent)
+		deErr := w.builder.OnDomainEvent(DomainEvent{
+			ID:   de.ID,
+			Data: de.Data,
+			Date: de.Date,
+		})
 		if deErr != nil {
 			log.Printf("Error handling domain event: %v", deErr)
 		}
 		return !w.shouldStop(), nil
 	})
+
+	if err != nil {
+		log.Printf("Error scanning domain events: %v", err)
+	}
 }
 
 // Check if the worker goroutine has been told to stop

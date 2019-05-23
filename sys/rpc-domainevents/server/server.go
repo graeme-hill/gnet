@@ -81,6 +81,7 @@ func (s *Server) Scan(stream pb.DomainEvents_ScanServer) error {
 						Id:   rec.ID,
 						Data: rec.DomainEvent.Data,
 						Date: rec.DomainEvent.Date.Unix(),
+						Type: rec.DomainEvent.Type,
 					},
 				},
 			})

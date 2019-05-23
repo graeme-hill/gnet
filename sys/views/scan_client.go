@@ -13,6 +13,7 @@ type DomainEvent struct {
 	ID   int64
 	Data []byte
 	Date time.Time
+	Type string
 }
 
 type ScanClient struct {
@@ -66,6 +67,7 @@ func (sc *ScanClient) Scan(pointer uint32, handler ScanHandler) error {
 				ID:   e.Id,
 				Data: e.Data,
 				Date: time.Unix(e.Date, 0),
+				Type: e.Type,
 			})
 			if err != nil {
 				return false, errors.Wrap(err, "Abandoning scan because a handler failed")
