@@ -42,18 +42,29 @@ func TestServer(t *testing.T) {
 	require.NoError(t, err)
 
 	err = stream.Send(&pb.ScanRequest{
-		Pointer: 6,
-		After:   -1,
+		Command: &pb.ScanRequest_ResumeCommand{
+			ResumeCommand: &pb.ScanRequestResume{
+				Pointer: 6,
+			},
+		},
 	})
 	require.NoError(t, err)
 
 	sr, err := stream.Recv()
 	require.NoError(t, err)
-	require.Equal(t, int64(0), sr.Id)
-	require.Equal(t, data0, sr.Data)
+	eventCmd, ok := sr.Command.(*pb.ScanResponse_Event)
+	require.True(t, ok)
+	require.Equal(t, int64(0), eventCmd.Event.Id)
+	require.Equal(t, data0, eventCmd.Event.Data)
 
 	sr, err = stream.Recv()
 	require.NoError(t, err)
-	require.Equal(t, int64(1), sr.Id)
-	require.Equal(t, data1, sr.Data)
+	eventCmd, ok = sr.Command.(*pb.ScanResponse_Event)
+	require.Equal(t, int64(1), eventCmd.Event.Id)
+	require.Equal(t, data1, eventCmd.Event.Data)
+
+	sr, err = stream.Recv()
+	require.NoError(t, err)
+	_, ok = sr.Command.(*pb.ScanResponse_Complete)
+	require.True(t, ok)
 }

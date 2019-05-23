@@ -101,11 +101,13 @@ func (m *InsertDomainEventResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_InsertDomainEventResponse proto.InternalMessageInfo
 
 type ScanRequest struct {
-	Pointer              uint32   `protobuf:"varint,1,opt,name=pointer,proto3" json:"pointer,omitempty"`
-	After                int64    `protobuf:"varint,2,opt,name=after,proto3" json:"after,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	// Types that are valid to be assigned to Command:
+	//	*ScanRequest_ResumeCommand
+	//	*ScanRequest_StatusCommand
+	Command              isScanRequest_Command `protobuf_oneof:"command"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
 }
 
 func (m *ScanRequest) Reset()         { *m = ScanRequest{} }
@@ -133,34 +135,144 @@ func (m *ScanRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ScanRequest proto.InternalMessageInfo
 
-func (m *ScanRequest) GetPointer() uint32 {
+type isScanRequest_Command interface {
+	isScanRequest_Command()
+}
+
+type ScanRequest_ResumeCommand struct {
+	ResumeCommand *ScanRequestResume `protobuf:"bytes,1,opt,name=resumeCommand,proto3,oneof"`
+}
+
+type ScanRequest_StatusCommand struct {
+	StatusCommand *ScanRequestStatus `protobuf:"bytes,2,opt,name=statusCommand,proto3,oneof"`
+}
+
+func (*ScanRequest_ResumeCommand) isScanRequest_Command() {}
+
+func (*ScanRequest_StatusCommand) isScanRequest_Command() {}
+
+func (m *ScanRequest) GetCommand() isScanRequest_Command {
+	if m != nil {
+		return m.Command
+	}
+	return nil
+}
+
+func (m *ScanRequest) GetResumeCommand() *ScanRequestResume {
+	if x, ok := m.GetCommand().(*ScanRequest_ResumeCommand); ok {
+		return x.ResumeCommand
+	}
+	return nil
+}
+
+func (m *ScanRequest) GetStatusCommand() *ScanRequestStatus {
+	if x, ok := m.GetCommand().(*ScanRequest_StatusCommand); ok {
+		return x.StatusCommand
+	}
+	return nil
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*ScanRequest) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*ScanRequest_ResumeCommand)(nil),
+		(*ScanRequest_StatusCommand)(nil),
+	}
+}
+
+type ScanRequestResume struct {
+	Pointer              uint32   `protobuf:"varint,1,opt,name=pointer,proto3" json:"pointer,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ScanRequestResume) Reset()         { *m = ScanRequestResume{} }
+func (m *ScanRequestResume) String() string { return proto.CompactTextString(m) }
+func (*ScanRequestResume) ProtoMessage()    {}
+func (*ScanRequestResume) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9e97c8e8aeb763ec, []int{3}
+}
+
+func (m *ScanRequestResume) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ScanRequestResume.Unmarshal(m, b)
+}
+func (m *ScanRequestResume) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ScanRequestResume.Marshal(b, m, deterministic)
+}
+func (m *ScanRequestResume) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ScanRequestResume.Merge(m, src)
+}
+func (m *ScanRequestResume) XXX_Size() int {
+	return xxx_messageInfo_ScanRequestResume.Size(m)
+}
+func (m *ScanRequestResume) XXX_DiscardUnknown() {
+	xxx_messageInfo_ScanRequestResume.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ScanRequestResume proto.InternalMessageInfo
+
+func (m *ScanRequestResume) GetPointer() uint32 {
 	if m != nil {
 		return m.Pointer
 	}
 	return 0
 }
 
-func (m *ScanRequest) GetAfter() int64 {
+type ScanRequestStatus struct {
+	LastReceived         int64    `protobuf:"varint,1,opt,name=lastReceived,proto3" json:"lastReceived,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ScanRequestStatus) Reset()         { *m = ScanRequestStatus{} }
+func (m *ScanRequestStatus) String() string { return proto.CompactTextString(m) }
+func (*ScanRequestStatus) ProtoMessage()    {}
+func (*ScanRequestStatus) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9e97c8e8aeb763ec, []int{4}
+}
+
+func (m *ScanRequestStatus) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ScanRequestStatus.Unmarshal(m, b)
+}
+func (m *ScanRequestStatus) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ScanRequestStatus.Marshal(b, m, deterministic)
+}
+func (m *ScanRequestStatus) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ScanRequestStatus.Merge(m, src)
+}
+func (m *ScanRequestStatus) XXX_Size() int {
+	return xxx_messageInfo_ScanRequestStatus.Size(m)
+}
+func (m *ScanRequestStatus) XXX_DiscardUnknown() {
+	xxx_messageInfo_ScanRequestStatus.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ScanRequestStatus proto.InternalMessageInfo
+
+func (m *ScanRequestStatus) GetLastReceived() int64 {
 	if m != nil {
-		return m.After
+		return m.LastReceived
 	}
 	return 0
 }
 
 type ScanResponse struct {
-	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Data                 []byte   `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
-	Date                 int64    `protobuf:"varint,3,opt,name=date,proto3" json:"date,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	// Types that are valid to be assigned to Command:
+	//	*ScanResponse_Event
+	//	*ScanResponse_Complete
+	Command              isScanResponse_Command `protobuf_oneof:"command"`
+	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
+	XXX_unrecognized     []byte                 `json:"-"`
+	XXX_sizecache        int32                  `json:"-"`
 }
 
 func (m *ScanResponse) Reset()         { *m = ScanResponse{} }
 func (m *ScanResponse) String() string { return proto.CompactTextString(m) }
 func (*ScanResponse) ProtoMessage()    {}
 func (*ScanResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9e97c8e8aeb763ec, []int{3}
+	return fileDescriptor_9e97c8e8aeb763ec, []int{5}
 }
 
 func (m *ScanResponse) XXX_Unmarshal(b []byte) error {
@@ -181,21 +293,131 @@ func (m *ScanResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ScanResponse proto.InternalMessageInfo
 
-func (m *ScanResponse) GetId() int64 {
+type isScanResponse_Command interface {
+	isScanResponse_Command()
+}
+
+type ScanResponse_Event struct {
+	Event *ScanResponseDomainEvent `protobuf:"bytes,1,opt,name=event,proto3,oneof"`
+}
+
+type ScanResponse_Complete struct {
+	Complete *ScanResponseComplete `protobuf:"bytes,2,opt,name=complete,proto3,oneof"`
+}
+
+func (*ScanResponse_Event) isScanResponse_Command() {}
+
+func (*ScanResponse_Complete) isScanResponse_Command() {}
+
+func (m *ScanResponse) GetCommand() isScanResponse_Command {
+	if m != nil {
+		return m.Command
+	}
+	return nil
+}
+
+func (m *ScanResponse) GetEvent() *ScanResponseDomainEvent {
+	if x, ok := m.GetCommand().(*ScanResponse_Event); ok {
+		return x.Event
+	}
+	return nil
+}
+
+func (m *ScanResponse) GetComplete() *ScanResponseComplete {
+	if x, ok := m.GetCommand().(*ScanResponse_Complete); ok {
+		return x.Complete
+	}
+	return nil
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*ScanResponse) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*ScanResponse_Event)(nil),
+		(*ScanResponse_Complete)(nil),
+	}
+}
+
+type ScanResponseComplete struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ScanResponseComplete) Reset()         { *m = ScanResponseComplete{} }
+func (m *ScanResponseComplete) String() string { return proto.CompactTextString(m) }
+func (*ScanResponseComplete) ProtoMessage()    {}
+func (*ScanResponseComplete) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9e97c8e8aeb763ec, []int{6}
+}
+
+func (m *ScanResponseComplete) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ScanResponseComplete.Unmarshal(m, b)
+}
+func (m *ScanResponseComplete) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ScanResponseComplete.Marshal(b, m, deterministic)
+}
+func (m *ScanResponseComplete) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ScanResponseComplete.Merge(m, src)
+}
+func (m *ScanResponseComplete) XXX_Size() int {
+	return xxx_messageInfo_ScanResponseComplete.Size(m)
+}
+func (m *ScanResponseComplete) XXX_DiscardUnknown() {
+	xxx_messageInfo_ScanResponseComplete.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ScanResponseComplete proto.InternalMessageInfo
+
+type ScanResponseDomainEvent struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Data                 []byte   `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+	Date                 int64    `protobuf:"varint,3,opt,name=date,proto3" json:"date,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ScanResponseDomainEvent) Reset()         { *m = ScanResponseDomainEvent{} }
+func (m *ScanResponseDomainEvent) String() string { return proto.CompactTextString(m) }
+func (*ScanResponseDomainEvent) ProtoMessage()    {}
+func (*ScanResponseDomainEvent) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9e97c8e8aeb763ec, []int{7}
+}
+
+func (m *ScanResponseDomainEvent) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ScanResponseDomainEvent.Unmarshal(m, b)
+}
+func (m *ScanResponseDomainEvent) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ScanResponseDomainEvent.Marshal(b, m, deterministic)
+}
+func (m *ScanResponseDomainEvent) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ScanResponseDomainEvent.Merge(m, src)
+}
+func (m *ScanResponseDomainEvent) XXX_Size() int {
+	return xxx_messageInfo_ScanResponseDomainEvent.Size(m)
+}
+func (m *ScanResponseDomainEvent) XXX_DiscardUnknown() {
+	xxx_messageInfo_ScanResponseDomainEvent.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ScanResponseDomainEvent proto.InternalMessageInfo
+
+func (m *ScanResponseDomainEvent) GetId() int64 {
 	if m != nil {
 		return m.Id
 	}
 	return 0
 }
 
-func (m *ScanResponse) GetData() []byte {
+func (m *ScanResponseDomainEvent) GetData() []byte {
 	if m != nil {
 		return m.Data
 	}
 	return nil
 }
 
-func (m *ScanResponse) GetDate() int64 {
+func (m *ScanResponseDomainEvent) GetDate() int64 {
 	if m != nil {
 		return m.Date
 	}
@@ -206,29 +428,40 @@ func init() {
 	proto.RegisterType((*InsertDomainEventRequest)(nil), "InsertDomainEventRequest")
 	proto.RegisterType((*InsertDomainEventResponse)(nil), "InsertDomainEventResponse")
 	proto.RegisterType((*ScanRequest)(nil), "ScanRequest")
+	proto.RegisterType((*ScanRequestResume)(nil), "ScanRequestResume")
+	proto.RegisterType((*ScanRequestStatus)(nil), "ScanRequestStatus")
 	proto.RegisterType((*ScanResponse)(nil), "ScanResponse")
+	proto.RegisterType((*ScanResponseComplete)(nil), "ScanResponseComplete")
+	proto.RegisterType((*ScanResponseDomainEvent)(nil), "ScanResponseDomainEvent")
 }
 
 func init() { proto.RegisterFile("sys/pb/domainevents.proto", fileDescriptor_9e97c8e8aeb763ec) }
 
 var fileDescriptor_9e97c8e8aeb763ec = []byte{
-	// 247 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x90, 0x41, 0x4b, 0xc4, 0x30,
-	0x10, 0x85, 0x37, 0x6d, 0x55, 0x1c, 0xbb, 0x82, 0xc1, 0x43, 0x5a, 0x2f, 0x4b, 0x4e, 0xf5, 0x92,
-	0x15, 0x3d, 0x7b, 0x59, 0x54, 0x10, 0x3c, 0xc5, 0x9b, 0xb7, 0xd4, 0x8e, 0xd0, 0x83, 0x49, 0x6c,
-	0xa2, 0xb0, 0xbf, 0xc0, 0xbf, 0x2d, 0x99, 0xba, 0x50, 0xd8, 0xed, 0xed, 0xcd, 0x9b, 0x99, 0xc7,
-	0x37, 0x03, 0x55, 0xd8, 0x86, 0xb5, 0x6f, 0xd7, 0x9d, 0xfb, 0x34, 0xbd, 0xc5, 0x1f, 0xb4, 0x31,
-	0x28, 0x3f, 0xb8, 0xe8, 0xe4, 0x06, 0xc4, 0xb3, 0x0d, 0x38, 0xc4, 0x07, 0xea, 0x3d, 0xa6, 0x9e,
-	0xc6, 0xaf, 0x6f, 0x0c, 0x91, 0x73, 0x28, 0xe2, 0xd6, 0xa3, 0x60, 0x2b, 0xd6, 0x9c, 0x6a, 0xd2,
-	0xc9, 0xeb, 0x4c, 0x34, 0x22, 0x5b, 0xb1, 0xa6, 0xd4, 0xa4, 0xe5, 0x15, 0x54, 0x07, 0x32, 0x82,
-	0x77, 0x36, 0xa0, 0xbc, 0x87, 0xb3, 0xd7, 0x77, 0x63, 0x77, 0x99, 0x02, 0x4e, 0xbc, 0xeb, 0x6d,
-	0xc4, 0x81, 0x62, 0x97, 0x7a, 0x57, 0xf2, 0x4b, 0x38, 0x32, 0x1f, 0xc9, 0x4f, 0xd1, 0xb9, 0x1e,
-	0x0b, 0xf9, 0x04, 0xe5, 0xb8, 0x3e, 0xc6, 0xf1, 0x73, 0xc8, 0xfa, 0x8e, 0x56, 0x73, 0x9d, 0xf5,
-	0xdd, 0x21, 0x9e, 0x7f, 0x0f, 0x45, 0x4e, 0x53, 0xa4, 0x6f, 0x7f, 0x19, 0x94, 0x13, 0xbc, 0xc0,
-	0x5f, 0xe0, 0x62, 0x0f, 0x9a, 0x57, 0x6a, 0xee, 0x19, 0x75, 0xad, 0xe6, 0x6f, 0x5c, 0xf0, 0x6b,
-	0x28, 0x12, 0x26, 0x2f, 0xd5, 0xe4, 0xd8, 0x7a, 0xa9, 0xa6, 0xec, 0x72, 0xd1, 0xb0, 0x1b, 0xb6,
-	0x29, 0xde, 0x32, 0xdf, 0xb6, 0xc7, 0xf4, 0xfe, 0xbb, 0xbf, 0x00, 0x00, 0x00, 0xff, 0xff, 0x69,
-	0x25, 0x0c, 0xd8, 0x9b, 0x01, 0x00, 0x00,
+	// 365 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x92, 0xb1, 0x6f, 0xea, 0x30,
+	0x10, 0xc6, 0xe3, 0xc0, 0x7b, 0x3c, 0x8e, 0xf0, 0x24, 0xac, 0xf7, 0xda, 0x40, 0x17, 0xe4, 0x89,
+	0x0e, 0x0d, 0x08, 0x86, 0x4a, 0x1d, 0xa1, 0x95, 0xa8, 0xd4, 0xa5, 0x66, 0xeb, 0x16, 0x92, 0x1b,
+	0x22, 0x11, 0xdb, 0x8d, 0x0d, 0x12, 0x5b, 0xb7, 0xae, 0xfd, 0x93, 0xab, 0x38, 0x49, 0x95, 0x08,
+	0xd8, 0xce, 0x77, 0xbf, 0xef, 0xec, 0xef, 0x7c, 0x30, 0xd4, 0x47, 0x3d, 0x55, 0xdb, 0x69, 0x2c,
+	0xd3, 0x30, 0x11, 0x78, 0x40, 0x61, 0x74, 0xa0, 0x32, 0x69, 0x24, 0x5b, 0x82, 0xff, 0x2c, 0x34,
+	0x66, 0xe6, 0xd1, 0xd6, 0x9e, 0xf2, 0x1a, 0xc7, 0xf7, 0x3d, 0x6a, 0x43, 0x29, 0xb4, 0xcd, 0x51,
+	0xa1, 0x4f, 0xc6, 0x64, 0xd2, 0xe5, 0x36, 0xce, 0x73, 0x71, 0x68, 0x42, 0xdf, 0x1d, 0x93, 0x89,
+	0xc7, 0x6d, 0xcc, 0x6e, 0x60, 0x78, 0xa6, 0x87, 0x56, 0x52, 0x68, 0x64, 0x5f, 0x04, 0x7a, 0x9b,
+	0x28, 0x14, 0x55, 0xd3, 0x07, 0xe8, 0x67, 0xa8, 0xf7, 0x29, 0xae, 0x64, 0x9a, 0x86, 0x22, 0xb6,
+	0xdd, 0x7b, 0x73, 0x1a, 0xd4, 0x20, 0x6e, 0x81, 0xb5, 0xc3, 0x9b, 0x68, 0xae, 0xd5, 0x26, 0x34,
+	0x7b, 0x5d, 0x69, 0xdd, 0x53, 0xed, 0xc6, 0x02, 0xb9, 0xb6, 0x81, 0x2e, 0xbb, 0xd0, 0x89, 0x8a,
+	0x90, 0xdd, 0xc1, 0xe0, 0xe4, 0x32, 0xea, 0x43, 0x47, 0xc9, 0x44, 0x18, 0xcc, 0xec, 0x8b, 0xfa,
+	0xbc, 0x3a, 0xb2, 0xfb, 0x06, 0x5e, 0xf4, 0xa7, 0x0c, 0xbc, 0x5d, 0x98, 0x8b, 0x23, 0x4c, 0x0e,
+	0x58, 0xb8, 0x68, 0xf1, 0x46, 0x8e, 0x7d, 0x10, 0xf0, 0x0a, 0x65, 0x31, 0x0b, 0x3a, 0x83, 0x5f,
+	0x76, 0xf8, 0xa5, 0x67, 0x3f, 0xa8, 0x57, 0x6b, 0xc3, 0x5b, 0x3b, 0xbc, 0x00, 0xe9, 0x02, 0xfe,
+	0x44, 0x32, 0x55, 0x3b, 0x34, 0x58, 0x9a, 0xfd, 0xdf, 0x10, 0xad, 0xca, 0xe2, 0xda, 0xe1, 0x3f,
+	0x60, 0xdd, 0xea, 0x15, 0xfc, 0x3b, 0x87, 0xb3, 0x57, 0xb8, 0xbe, 0x70, 0x37, 0xfd, 0x0b, 0x6e,
+	0x52, 0xf9, 0x71, 0x93, 0xf8, 0xdc, 0x8f, 0x97, 0x39, 0xf4, 0x5b, 0x96, 0xb2, 0xf1, 0xfc, 0x93,
+	0x80, 0x57, 0xeb, 0xa3, 0xe9, 0x0b, 0x0c, 0x4e, 0xd6, 0x82, 0x0e, 0x83, 0x4b, 0xeb, 0x36, 0x1a,
+	0x05, 0x97, 0xb7, 0xc8, 0xa1, 0xb7, 0xd0, 0xce, 0x5f, 0x4c, 0xbd, 0xfa, 0x67, 0x8f, 0xfa, 0x8d,
+	0x69, 0x30, 0x67, 0x42, 0x66, 0x64, 0xd9, 0x7e, 0x73, 0xd5, 0x76, 0xfb, 0xdb, 0x2e, 0xf8, 0xe2,
+	0x3b, 0x00, 0x00, 0xff, 0xff, 0x0a, 0xb5, 0x22, 0x53, 0xfd, 0x02, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.

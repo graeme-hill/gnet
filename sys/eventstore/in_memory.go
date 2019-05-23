@@ -19,6 +19,23 @@ type pointer struct {
 	mutex sync.Mutex
 }
 
+func (e *InMemEventStore) GetPointer(pointer uint32) (int64, error) {
+	p, ok := e.pointers[pointer]
+	if !ok {
+		return 0, errors.Errorf("pointer %d does not exist", pointer)
+	}
+	return p.id, nil
+}
+
+func (e *InMemEventStore) SetPointer(pointer uint32, lastHandled int64) error {
+	p, ok := e.pointers[pointer]
+	if !ok {
+		return errors.Errorf("pointer %d does not exist", pointer)
+	}
+	p.id = lastHandled
+	return nil
+}
+
 func (e *InMemEventStore) requirePointer(pointerID uint32) *pointer {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()

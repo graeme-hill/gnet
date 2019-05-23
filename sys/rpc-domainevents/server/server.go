@@ -34,6 +34,12 @@ func (s *Server) Scan(stream pb.DomainEvents_ScanServer) error {
 		return errors.Wrap(err, "Failed to receive initial message from client")
 	}
 
+	resumeCommand, ok := req.Command.(*pb.ScanRequest_ResumeCommand)
+	if !ok {
+		return errors.New("First message from client must be resume command")
+	}
+	pointer := resumeCommand.ResumeCommand.Pointer
+
 	finalID := int64(-1)
 	receiverDone := make(chan struct{})
 	senderDone := make(chan struct{})
@@ -52,10 +58,15 @@ func (s *Server) Scan(stream pb.DomainEvents_ScanServer) error {
 				break
 			} else {
 				log.Println("server succesfully recv'd")
-				if finalID >= 0 && msg.After >= finalID {
-					log.Printf("complete")
-					receiverDone <- struct{}{}
-					return
+				switch cmd := msg.Command.(type) {
+				case *pb.ScanRequest_ResumeCommand:
+
+				case *pb.ScanRequest_StatusCommand:
+					if finalID >= 0 && cmd.StatusCommand.LastReceived >= finalID {
+						log.Printf("complete")
+						receiverDone <- struct{}{}
+						return
+					}
 				}
 			}
 		}
@@ -63,10 +74,15 @@ func (s *Server) Scan(stream pb.DomainEvents_ScanServer) error {
 
 	go func() {
 		maxID := int64(-1)
-		_ = s.store.Scan(req.Pointer, func(rec eventstore.Record) error {
+		_ = s.store.Scan(pointer, func(rec eventstore.Record) error {
 			err3 := stream.Send(&pb.ScanResponse{
-				Id:   rec.ID,
-				Data: rec.DomainEvent.Data,
+				Command: &pb.ScanResponse_Event{
+					Event: &pb.ScanResponseDomainEvent{
+						Id:   rec.ID,
+						Data: rec.DomainEvent.Data,
+						Date: rec.DomainEvent.Date.Unix(),
+					},
+				},
 			})
 			maxID = rec.ID
 			if err3 != nil {
@@ -74,6 +90,15 @@ func (s *Server) Scan(stream pb.DomainEvents_ScanServer) error {
 			}
 			return nil
 		})
+
+		completeErr := stream.Send(&pb.ScanResponse{
+			Command: &pb.ScanResponse_Complete{
+				Complete: &pb.ScanResponseComplete{},
+			},
+		})
+		if completeErr != nil {
+			log.Printf("failed to send complete message to client: %v", completeErr)
+		}
 
 		log.Printf("server finished scanning but waiting for client ack")
 		finalID = maxID

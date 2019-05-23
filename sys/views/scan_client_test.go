@@ -1,4 +1,4 @@
-package scanclient
+package views
 
 import (
 	"context"
@@ -54,7 +54,7 @@ func TestScanClient(t *testing.T) {
 	require.NoError(t, err)
 
 	events := []DomainEvent{}
-	err = scanClient.Scan(1, -1, func(de DomainEvent) error {
+	err = scanClient.Scan(1, func(de DomainEvent) error {
 		events = append(events, de)
 		return nil
 	})

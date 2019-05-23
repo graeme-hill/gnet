@@ -15,11 +15,30 @@ message InsertDomainEventRequest {
 message InsertDomainEventResponse {}
 
 message ScanRequest {
+  oneof command {
+    ScanRequestResume resumeCommand = 1;
+    ScanRequestStatus statusCommand = 2;
+  }
+}
+
+message ScanRequestResume {
   uint32 pointer = 1;
-  int64 after = 2;
+}
+
+message ScanRequestStatus {
+  int64 lastReceived = 1;
 }
 
 message ScanResponse {
+  oneof command {
+    ScanResponseDomainEvent event = 1;
+    ScanResponseComplete complete = 2;
+  }
+}
+
+message ScanResponseComplete {}
+
+message ScanResponseDomainEvent {
   int64 id = 1;
   bytes data = 2;
   int64 date = 3;
