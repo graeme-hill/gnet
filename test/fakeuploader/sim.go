@@ -1,14 +1,15 @@
-package main
+package fakeuploader
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"image"
 	"image/color"
 	"image/png"
-	"bufio"
-	"bytes"
-	"io/ioutil"
 	"math/rand"
+	"net/http"
+	"time"
 )
 
 func randomColor() color.RGBA {
@@ -29,10 +30,10 @@ func randomRect(img *image.RGBA) image.Rectangle {
 		Y: rand.Intn(h - 1),
 	}
 	bottomRight := image.Point{
-		X: topLeft.X + rand.Intn(w - topLeft.X) + 1,
-		Y: topLeft.Y + rand.Intn(h - topLeft.Y) + 1,
+		X: topLeft.X + rand.Intn(w-topLeft.X) + 1,
+		Y: topLeft.Y + rand.Intn(h-topLeft.Y) + 1,
 	}
-	
+
 	return image.Rectangle{
 		Min: topLeft,
 		Max: bottomRight,
@@ -62,23 +63,23 @@ func drawRect(img *image.RGBA) {
 	}
 }
 
-func randomImage() ([]byte, error) {
-	rand.Seed(44)
+func randomImageSize() (int, int) {
+	// only use portrait 20% of the time
+	portrait := rand.Intn(5) == 0
+	if portrait {
+		return 768, 1024
+	}
+	return 1024, 768
+}
 
+func randomImage() (*bytes.Buffer, error) {
 	// make image
-	width := 1024
-	height := 768
+	width, height := randomImageSize()
 	topLeft := image.Point{X: 0, Y: 0}
 	bottomRight := image.Point{X: width, Y: height}
 	img := image.NewRGBA(image.Rectangle{topLeft, bottomRight})
 
 	drawBackground(img)
-	drawRect(img)
-	drawRect(img)
-	drawRect(img)
-	drawRect(img)
-	drawRect(img)
-	drawRect(img)
 	drawRect(img)
 	drawRect(img)
 	drawRect(img)
@@ -91,21 +92,24 @@ func randomImage() ([]byte, error) {
 		return nil, err
 	}
 
-	return pngBuffer.Bytes(), nil
+	return &pngBuffer, nil
 }
 
-func main() {
-	png, err := randomImage()
-	if err != nil {
-		fmt.Printf("oh nooooo, failed to make image b/c '%v'\n", err)
-		return
+func continuouslyUpload(stop <-chan struct{}, stopped chan<- struct{}, apiAddress string) {
+	for {
+		select {
+		case <-stop:
+			stopped <- struct{}{}
+			return
+		case <-time.After(10 * time.Second):
+			fmt.Println("fake client uploading image")
+			png, _ := randomImage()
+			_, _ = http.Post(apiAddress, "image/png", png)
+		}
 	}
+}
 
-	err = ioutil.WriteFile("C:\\users\\graeme\\test3.png", png, 0644)
-	if err != nil {
-		fmt.Printf("oh nooooo, failed to write file b/c '%v'\n", err)
-		return
-	}
-
-	fmt.Println("done")
+func Run(stop <-chan struct{}, stopped chan<- struct{}, apiAddress string) {
+	rand.Seed(1)
+	go continuouslyUpload(stop, stopped, apiAddress)
 }
