@@ -29,7 +29,7 @@ loop:
 			// stop simulation jobs
 			fuErr := <-fuOver
 			if fuErr == nil {
-				log.Print("Stopped fakeuploader: OK :)")
+				log.Print("OFFLINE fakeuploader: OK :)")
 			} else {
 				log.Printf("Stopped fakeuploader: %v", fuErr)
 			}
@@ -55,37 +55,3 @@ loop:
 		}
 	}
 }
-
-// func main() {
-// 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-
-// 	go func() {
-// 		for {
-// 			select {
-// 			case <-ctx.Done():
-// 				fmt.Println("finished one")
-// 				return
-// 			default:
-// 			}
-// 		}
-// 	}()
-
-// 	go func() {
-// 		for {
-// 			select {
-// 			case <-ctx.Done():
-// 				fmt.Println("finished two")
-// 				return
-// 			default:
-// 			}
-// 		}
-// 	}()
-
-// 	fmt.Println("waiting 10 seconds")
-// 	time.Sleep(10 * time.Second)
-// 	fmt.Println("cancel")
-// 	cancel()
-// 	fmt.Println("waiting 2 seconds")
-// 	time.Sleep(2 * time.Second)
-// 	fmt.Println("done")
-// }
