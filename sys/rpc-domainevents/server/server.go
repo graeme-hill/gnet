@@ -142,10 +142,7 @@ func Run(ctx context.Context, opt Options) gnet.Service {
 		log.Printf("ONLINE - domain events RPC: %s", opt.Addr)
 	}()
 
-	return gnet.Service{
-		Over:    over,
-		Running: running,
-	}
+	return gnet.NewService(over, running)
 }
 
 func formatAddr(addr string) string {

@@ -102,7 +102,7 @@ func handler(opts Options, inner func(Options, http.ResponseWriter, *http.Reques
 
 func formatAddr(addr string) string {
 	parts := strings.Split(addr, ":")
-	return ":" + parts[len(parts)-1]
+	return ":" + parts[len(parts)-1] + "::"
 }
 
 func waitUntilPingable(ctx context.Context, addr string) error {

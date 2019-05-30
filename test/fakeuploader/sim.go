@@ -11,6 +11,8 @@ import (
 	"math/rand"
 	"net/http"
 	"time"
+
+	"github.com/graeme-hill/gnet/sys/gnet"
 )
 
 func randomColor() color.RGBA {
@@ -118,7 +120,7 @@ func continuouslyUpload(ctx context.Context, over chan<- error, apiAddress strin
 	}
 }
 
-func Run(ctx context.Context, apiAddress string) <-chan error {
+func Run(ctx context.Context, apiAddress string) gnet.Service {
 	rand.Seed(1)
 	over := make(chan error)
 	go continuouslyUpload(ctx, over, apiAddress)

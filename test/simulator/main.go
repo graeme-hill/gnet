@@ -22,6 +22,7 @@ func main() {
 	signal.Notify(sigChan, os.Interrupt)
 
 	cancelRequested := false
+
 loop:
 	for {
 		select {
