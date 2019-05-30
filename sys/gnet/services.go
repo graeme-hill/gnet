@@ -7,3 +7,8 @@ type Connections struct {
 	PhotosWebAPI    string
 	DomainEventsRPC string
 }
+
+type Service struct {
+	Over    <-chan error
+	Running <-chan struct{}
+}

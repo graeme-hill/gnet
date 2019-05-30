@@ -4,9 +4,11 @@ import (
 	"context"
 	"log"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/graeme-hill/gnet/sys/eventstore"
+	"github.com/graeme-hill/gnet/sys/gnet"
 	"github.com/graeme-hill/gnet/sys/pb"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -115,9 +117,8 @@ func (s *Server) Scan(stream pb.DomainEvents_ScanServer) error {
 	return nil
 }
 
-func Run(ctx context.Context, opt Options) <-chan error {
-	log.Println("RPC SERVER: listening " + opt.Addr)
-	listen, err := net.Listen("tcp", opt.Addr)
+func Run(ctx context.Context, opt Options) gnet.Service {
+	listen, err := net.Listen("tcp", formatAddr(opt.Addr))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -128,37 +129,60 @@ func Run(ctx context.Context, opt Options) <-chan error {
 	})
 
 	over := make(chan error)
-	go start(ctx, s, listen, over)
+	go start(ctx, s, listen, opt.Addr, over)
 
-	return over
+	running := make(chan struct{})
+	go func() {
+		_, err := WaitForServer(ctx, opt.Addr)
+		if err != nil {
+			over <- errors.Wrap(err, "error while waiting for rpc server to come online")
+			return
+		}
+		running <- struct{}{}
+		log.Printf("ONLINE - domain events RPC: %s", opt.Addr)
+	}()
+
+	return gnet.Service{
+		Over:    over,
+		Running: running,
+	}
+}
+
+func formatAddr(addr string) string {
+	parts := strings.Split(addr, ":")
+	return ":" + parts[len(parts)-1]
 }
 
 func start(
 	ctx context.Context,
 	server *grpc.Server,
 	listener net.Listener,
+	addr string,
 	over chan<- error,
 ) {
 	go func() {
 		over <- server.Serve(listener)
-		log.Println("RPC SERVER: shutted down")
+		log.Printf("OFFLINE - domain events RPC: %s", addr)
 	}()
 
-	log.Println("RPC SERVER: waiting for ctx to be done")
 	select {
 	case <-ctx.Done():
-		log.Println("RPC SERVER: ctx done!")
 		server.GracefulStop()
 	}
 }
 
-func WaitForServer(addr string, delay time.Duration, attempts int) (*grpc.ClientConn, error) {
+func WaitForServer(ctx context.Context, addr string) (*grpc.ClientConn, error) {
 	var err error = nil
-	for i := 0; i < attempts; i++ {
-		time.Sleep(delay)
-		conn, err := grpc.Dial("localhost:50505", grpc.WithInsecure())
+	for i := 0; i < 20; i++ {
+		conn, err := grpc.Dial(addr, grpc.WithInsecure())
 		if err == nil {
 			return conn, nil
+		}
+
+		select {
+		case <-ctx.Done():
+			return nil, errors.New("context canceled before rpc server came online")
+		case <-time.After(100 * time.Millisecond):
 		}
 	}
 	return nil, err

@@ -5,12 +5,17 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"net/url"
+	"path"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/graeme-hill/gnet/photos/events"
 	"github.com/graeme-hill/gnet/sys/filestore"
+	"github.com/graeme-hill/gnet/sys/gnet"
 	"github.com/oklog/ulid"
+	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
 	"github.com/graeme-hill/gnet/sys/pb"
@@ -28,6 +33,11 @@ func makeFileName(hash string) string {
 	entropy := ulid.Monotonic(rand.New(rand.NewSource(t.UnixNano())), 0)
 	id := ulid.MustNew(ulid.Timestamp(t), entropy)
 	return "ph_" + id.String() + "_" + hash
+}
+
+func handlePing(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("pong"))
 }
 
 func handleUpload(opts Options, w http.ResponseWriter, r *http.Request) {
@@ -90,35 +100,83 @@ func handler(opts Options, inner func(Options, http.ResponseWriter, *http.Reques
 	}
 }
 
-func Run(ctx context.Context, opts Options) <-chan error {
+func formatAddr(addr string) string {
+	parts := strings.Split(addr, ":")
+	return ":" + parts[len(parts)-1]
+}
+
+func waitUntilPingable(ctx context.Context, addr string) error {
+	u, err := url.Parse(addr)
+	if err != nil {
+		return err
+	}
+
+	u.Path = path.Join(u.Path, "ping")
+	pingURL := u.String()
+
+	for i := 0; i < 20; i++ {
+		response, err := http.Get(pingURL)
+		if err == nil && response.StatusCode == http.StatusOK {
+			return nil
+		}
+
+		select {
+		case <-ctx.Done():
+			return errors.New("context canceled before server became pingable")
+		case <-time.After(100 * time.Millisecond):
+		}
+	}
+
+	return errors.New("gave up waiting for photos web api to come online")
+}
+
+func Run(ctx context.Context, opts Options) gnet.Service {
 	router := mux.NewRouter()
 	router.HandleFunc("/upload/{hash}", handler(opts, handleUpload))
+	router.HandleFunc("/ping", handlePing)
 
 	srv := &http.Server{
 		Handler:      router,
-		Addr:         opts.Addr,
+		Addr:         formatAddr(opts.Addr),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 
 	errChan := make(chan error)
+	startedChan := make(chan struct{})
 
 	// run the server
 	go func() {
-		log.Println("WEB SERVER: running listenandserve " + opts.Addr)
-		errChan <- srv.ListenAndServe()
-		log.Println("WEB SERVER: shutted down")
+		err := srv.ListenAndServe()
+		if err == http.ErrServerClosed {
+			// ErrServerClosed isn't an error!
+			err = nil
+		}
+		errChan <- err
+		log.Printf("OFFLINE - photos API: %s", opts.Addr)
 	}()
 
 	// tell the server to stop when canceled
 	go func() {
-		log.Println("WEB SERVER: waiting for ctx to be done")
 		select {
 		case <-ctx.Done():
-			log.Println("WEB SERVER: ctx is done")
 			_ = srv.Close()
 		}
 	}()
 
-	return errChan
+	// detect when actually running
+	go func() {
+		err := waitUntilPingable(ctx, opts.Addr)
+		if err != nil {
+			errChan <- errors.Wrap(err, "error when waiting for server to become pingable")
+			return
+		}
+		log.Printf("ONLINE - photos API: %s", opts.Addr)
+		startedChan <- struct{}{}
+	}()
+
+	return gnet.Service{
+		Over:    errChan,
+		Running: startedChan,
+	}
 }

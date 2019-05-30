@@ -36,10 +36,8 @@ loop:
 
 			// stop services
 			for service, err := range errs {
-				if err == nil {
-					log.Printf("Stopped %s: OK :)", service)
-				} else {
-					log.Printf("Stopped %s: Error: %v", service, err)
+				if err != nil {
+					log.Printf("Error shutting down %s: %v", service, err)
 				}
 			}
 			break loop

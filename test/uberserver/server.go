@@ -10,10 +10,16 @@ import (
 )
 
 type UberServer struct {
-	Connections  gnet.Connections
-	deErrChan    <-chan error
-	photoErrChan <-chan error
-	over         chan map[string]error
+	Connections           gnet.Connections
+	domainEventRPCService gnet.Service
+	photosAPIService      gnet.Service
+	over                  chan map[string]error
+	running               chan struct{}
+}
+
+func (u *UberServer) wait() {
+	_ = <-u.domainEventRPCService.Running
+	_ = <-u.photosAPIService.Running
 }
 
 func (u *UberServer) Done() <-chan map[string]error {
@@ -23,8 +29,8 @@ func (u *UberServer) Done() <-chan map[string]error {
 		go func() {
 			log.Println("AGG: waiting")
 			u.over <- map[string]error{
-				"rpc-domainevents": <-u.deErrChan,
-				"web-photos":       <-u.photoErrChan,
+				"rpc-domainevents": <-u.domainEventRPCService.Over,
+				"web-photos":       <-u.photosAPIService.Over,
 			}
 			log.Println("AGG: doned")
 			close(u.over)
@@ -43,17 +49,20 @@ func StartUberServer(ctx context.Context) UberServer {
 		DomainEventsRPC: "localhost:9000",
 	}
 
-	return UberServer{
+	result := UberServer{
 		Connections: connections,
-		deErrChan: deserver.Run(ctx, deserver.Options{
+		domainEventRPCService: deserver.Run(ctx, deserver.Options{
 			Addr:              connections.DomainEventsRPC,
 			EventStoreConnStr: connections.EventStore,
 		}),
-		photoErrChan: photoserver.Run(ctx, photoserver.Options{
+		photosAPIService: photoserver.Run(ctx, photoserver.Options{
 			Addr:                connections.PhotosWebAPI,
 			DomainEventsRPCAddr: connections.DomainEventsRPC,
 			EventStoreConnStr:   connections.EventStore,
 			FileStoreConnStr:    connections.FileStore,
 		}),
 	}
+
+	result.wait()
+	return result
 }
