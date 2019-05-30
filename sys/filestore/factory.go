@@ -1,3 +1,6 @@
 package filestore
 
-var NewFileStoreConn func(string) FileStore = NewInMemFileStore
+func NewFileStoreConn(connStr string) FileStore {
+	// when there is a non in-memory implementation make this smarter
+	return NewInMemFileStore(connStr)
+}

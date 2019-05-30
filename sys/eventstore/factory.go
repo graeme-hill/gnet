@@ -7,7 +7,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-var NewEventStoreConn func(string) EventStore = NewInMemEventStore
+func NewEventStoreConn(connStr string) EventStore {
+	// when there is a non-memory implementation then make this smarter
+	return NewInMemEventStore(connStr)
+}
 
 func NewDomainEvent(eventType string, msg proto.Message) (DomainEvent, error) {
 	payload, err := proto.Marshal(msg)

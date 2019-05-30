@@ -3,6 +3,7 @@ package fakeuploader
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"image"
 	"image/color"
@@ -95,21 +96,31 @@ func randomImage() (*bytes.Buffer, error) {
 	return &pngBuffer, nil
 }
 
-func continuouslyUpload(stop <-chan struct{}, stopped chan<- struct{}, apiAddress string) {
+func continuouslyUpload(ctx context.Context, over chan<- error, apiAddress string) {
 	for {
 		select {
-		case <-stop:
-			stopped <- struct{}{}
+		case <-ctx.Done():
+			over <- nil
 			return
 		case <-time.After(10 * time.Second):
 			fmt.Println("fake client uploading image")
-			png, _ := randomImage()
-			_, _ = http.Post(apiAddress, "image/png", png)
+			png, err := randomImage()
+			if err != nil {
+				over <- err
+				return
+			}
+			_, err = http.Post(apiAddress, "image/png", png)
+			if err != nil {
+				over <- err
+				return
+			}
 		}
 	}
 }
 
-func Run(stop <-chan struct{}, stopped chan<- struct{}, apiAddress string) {
+func Run(ctx context.Context, apiAddress string) <-chan error {
 	rand.Seed(1)
-	go continuouslyUpload(stop, stopped, apiAddress)
+	over := make(chan error)
+	go continuouslyUpload(ctx, over, apiAddress)
+	return over
 }

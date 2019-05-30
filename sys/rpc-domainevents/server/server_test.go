@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/graeme-hill/gnet/sys/eventstore"
 	"github.com/stretchr/testify/require"
 
 	"github.com/graeme-hill/gnet/sys/pb"
@@ -13,8 +12,12 @@ import (
 
 func TestServer(t *testing.T) {
 	go func() {
-		_ = RunServer(":50505", eventstore.NewEventStoreConn("mem"))
+		_ = RunServer(context.Background(), Options{
+			Addr: ":50505",
+			EventStoreConnStr: ":memory:",
+		})
 	}()
+
 	conn, err := WaitForServer("localhost:50505", 100*time.Millisecond, 10)
 	require.NoError(t, err)
 	defer conn.Close()

@@ -13,11 +13,13 @@ import (
 )
 
 type Server struct {
-	store eventstore.EventStore
+	eventStoreConnStr string
 }
 
 func (s *Server) InsertDomainEvent(ctx context.Context, in *pb.InsertDomainEventRequest) (*pb.InsertDomainEventResponse, error) {
-	err := s.store.Insert(eventstore.DomainEvent{
+	store := eventstore.NewEventStoreConn(s.eventStoreConnStr)
+
+	err := store.Insert(eventstore.DomainEvent{
 		Type: in.Type,
 		Date: time.Now(),
 		Data: in.Data,
@@ -74,7 +76,8 @@ func (s *Server) Scan(stream pb.DomainEvents_ScanServer) error {
 
 	go func() {
 		maxID := int64(-1)
-		_ = s.store.Scan(pointer, func(rec eventstore.Record) error {
+		store := eventstore.NewEventStoreConn(s.eventStoreConnStr)
+		_ = store.Scan(pointer, func(rec eventstore.Record) error {
 			err3 := stream.Send(&pb.ScanResponse{
 				Command: &pb.ScanResponse_Event{
 					Event: &pb.ScanResponseDomainEvent{
@@ -112,18 +115,37 @@ func (s *Server) Scan(stream pb.DomainEvents_ScanServer) error {
 	return nil
 }
 
-func RunServer(addr string, estore eventstore.EventStore) error {
-	listen, err := net.Listen("tcp", addr)
+func Run(ctx context.Context, opt Options) <-chan error {
+	listen, err := net.Listen("tcp", opt.Addr)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
 	s := grpc.NewServer()
 	pb.RegisterDomainEventsServer(s, &Server{
-		store: estore,
+		eventStoreConnStr: opt.EventStoreConnStr,
 	})
 
-	return s.Serve(listen)
+	over := make(chan error)
+	go start(ctx, s, listen, over)
+
+	return over
+}
+
+func start(
+	ctx context.Context,
+	server *grpc.Server,
+	listener net.Listener,
+	over chan<- error,
+) {
+	go func() {
+		over <- server.Serve(listener)
+	}()
+
+	select {
+	case <-ctx.Done():
+		server.GracefulStop()
+	}
 }
 
 func WaitForServer(addr string, delay time.Duration, attempts int) (*grpc.ClientConn, error) {
@@ -136,4 +158,9 @@ func WaitForServer(addr string, delay time.Duration, attempts int) (*grpc.Client
 		}
 	}
 	return nil, err
+}
+
+type Options struct {
+	EventStoreConnStr string
+	Addr              string
 }
