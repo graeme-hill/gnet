@@ -116,6 +116,7 @@ func (s *Server) Scan(stream pb.DomainEvents_ScanServer) error {
 }
 
 func Run(ctx context.Context, opt Options) <-chan error {
+	log.Println("RPC SERVER: listening " + opt.Addr)
 	listen, err := net.Listen("tcp", opt.Addr)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -140,10 +141,13 @@ func start(
 ) {
 	go func() {
 		over <- server.Serve(listener)
+		log.Println("RPC SERVER: shutted down")
 	}()
 
+	log.Println("RPC SERVER: waiting for ctx to be done")
 	select {
 	case <-ctx.Done():
+		log.Println("RPC SERVER: ctx done!")
 		server.GracefulStop()
 	}
 }

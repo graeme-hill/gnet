@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/graeme-hill/gnet/test/fakeuploader"
 	"github.com/graeme-hill/gnet/test/uberserver"
@@ -20,6 +21,7 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt)
 
+	cancelRequested := false
 loop:
 	for {
 		select {
@@ -45,6 +47,13 @@ loop:
 		case <-sigChan: // CTRL-C
 			log.Println("Stopping services...")
 			cancel()
+			cancelRequested = true
+
+		case <-time.After(10 * time.Second):
+			if cancelRequested {
+				log.Println("TIMEOUT")
+				break loop
+			}
 		}
 	}
 }

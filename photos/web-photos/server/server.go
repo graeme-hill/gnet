@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"log"
 	"math/rand"
 	"net/http"
 	"time"
@@ -104,13 +105,17 @@ func Run(ctx context.Context, opts Options) <-chan error {
 
 	// run the server
 	go func() {
+		log.Println("WEB SERVER: running listenandserve " + opts.Addr)
 		errChan <- srv.ListenAndServe()
+		log.Println("WEB SERVER: shutted down")
 	}()
 
 	// tell the server to stop when canceled
 	go func() {
+		log.Println("WEB SERVER: waiting for ctx to be done")
 		select {
 		case <-ctx.Done():
+			log.Println("WEB SERVER: ctx is done")
 			_ = srv.Close()
 		}
 	}()
